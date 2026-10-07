@@ -36,7 +36,7 @@ publishing {
             pom {
                 name.set("KelpLib API")
                 description.set("Platform-agnostic stable API surface of KelpLib (utoverse server family)")
-                url.set("https://github.com/Utoverse/KelpLib")
+                url.set("https://github.com/tuanzisama/KelpLib")
                 developers {
                     developer {
                         id.set("evenwan")
@@ -51,7 +51,7 @@ publishing {
         if (System.getenv("GITHUB_TOKEN") != null) {
             maven {
                 name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/" + (System.getenv("GITHUB_REPOSITORY") ?: "Utoverse/KelpLib"))
+                url = uri("https://maven.pkg.github.com/" + (System.getenv("GITHUB_REPOSITORY") ?: "tuanzisama/KelpLib"))
                 credentials {
                     username = System.getenv("GITHUB_ACTOR") ?: "github-actions"
                     password = System.getenv("GITHUB_TOKEN")
