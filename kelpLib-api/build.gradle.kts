@@ -51,8 +51,7 @@ publishing {
         if (System.getenv("GITHUB_TOKEN") != null) {
             maven {
                 name = "GitHubPackages"
-                val repoSlug = (System.getenv("GITHUB_REPOSITORY") ?: "Utoverse/KelpLib").lowercase()
-                url = uri("https://maven.pkg.github.com/" + repoSlug)
+                url = uri("https://maven.pkg.github.com/" + (System.getenv("GITHUB_REPOSITORY") ?: "Utoverse/KelpLib"))
                 credentials {
                     username = System.getenv("GITHUB_ACTOR") ?: "github-actions"
                     password = System.getenv("GITHUB_TOKEN")

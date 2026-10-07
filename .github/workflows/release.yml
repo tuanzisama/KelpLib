@@ -63,10 +63,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          REPO="${GITHUB_REPOSITORY,,}"
           MISSING=""
           for artifact in kelp-lib-api kelp-lib-core kelp-lib-bukkit kelp-lib-velocity; do
-            url="https://maven.pkg.github.com/${REPO}/ink/tuanzi/${artifact}/${VERSION}/${artifact}-${VERSION}.pom"
+            url="https://maven.pkg.github.com/${GITHUB_REPOSITORY}/ink/tuanzi/${artifact}/${VERSION}/${artifact}-${VERSION}.pom"
             code="$(curl -s -o /dev/null -w '%{http_code}' -u "${GITHUB_ACTOR}:${GITHUB_TOKEN}" "$url" || true)"
             echo "${artifact}: HTTP ${code}"
             if [ "$code" != "200" ]; then
