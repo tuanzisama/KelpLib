@@ -54,9 +54,8 @@ jobs:
       - name: Build
         run: ./gradlew build ${{ steps.version.outputs.version_arg }} --stacktrace
 
-      # GitHub Packages 的版本不可覆盖：同一版本重复 PUT 会返回 422。
-      # 另：Maven 包名（artifactId）必须全小写（kelp-lib-*），混合大小写首次发布即 422。
-      # 发布前逐模块探测，已存在的版本自动跳过（重跑工作流幂等）。
+      # GitHub Packages 语义：版本不可覆盖（重复 PUT 返回 409），artifactId 必须全小写。
+      # 发布前逐模块探测主 jar：已存在的版本跳过（重跑工作流幂等）。
       - name: Check already-published modules
         id: check
         env:
@@ -65,7 +64,7 @@ jobs:
           VERSION="${{ steps.version.outputs.version }}"
           MISSING=""
           for artifact in kelp-lib-api kelp-lib-core kelp-lib-bukkit kelp-lib-velocity; do
-            url="https://maven.pkg.github.com/${GITHUB_REPOSITORY}/ink/tuanzi/${artifact}/${VERSION}/${artifact}-${VERSION}.pom"
+            url="https://maven.pkg.github.com/${GITHUB_REPOSITORY}/ink/tuanzi/${artifact}/${VERSION}/${artifact}-${VERSION}.jar"
             code="$(curl -s -o /dev/null -w '%{http_code}' -u "${GITHUB_ACTOR}:${GITHUB_TOKEN}" "$url" || true)"
             echo "${artifact}: HTTP ${code}"
             if [ "$code" != "200" ]; then
@@ -80,11 +79,22 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
-          # MISSING 里是发布坐标（kelp-lib-*）；Gradle 任务路径用项目名（kelpLib-*）
+          # MISSING 里是发布坐标（kelp-lib-*）；Gradle 任务路径用项目名（kelpLib-*）。
+          # 409 = 该版本已存在于 Packages（不可覆盖语义）：视为已发布并跳过；
+          # 其他错误照常失败。若需要完整干净的版本，请在 Packages UI 删除该版本后重跑。
           for artifact in ${{ steps.check.outputs.missing }}; do
             project="kelpLib-${artifact#kelp-lib-}"
-            ./gradlew ":${project}:publish" ${{ steps.version.outputs.version_arg }} \
-              --no-configuration-cache --stacktrace
+            echo "::group::Publish ${project}"
+            if out="$(./gradlew ":${project}:publish" ${{ steps.version.outputs.version_arg }} \
+                     --no-configuration-cache --stacktrace 2>&1)"; then
+              echo "$out" | tail -5
+            elif echo "$out" | grep -q "status code 409"; then
+              echo "::notice::${artifact}:${VERSION} already exists on GitHub Packages (immutable) — skipped"
+            else
+              echo "$out" | grep -B2 -A12 "What went wrong" || echo "$out"
+              exit 1
+            fi
+            echo "::endgroup::"
           done
 
       - name: Generate JavaDoc (api stable surface)
