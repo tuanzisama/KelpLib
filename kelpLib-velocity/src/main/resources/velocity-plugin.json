@@ -1,0 +1,8 @@
+{
+  "id": "kelplib",
+  "name": "KelpLib",
+  "version": "${version}",
+  "description": "Shared utility & extension API library for the utoverse server family.",
+  "authors": ["evenwan"],
+  "dependencies": []
+}
