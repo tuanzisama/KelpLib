@@ -45,7 +45,7 @@ Same situation drove these PLAN-sanctioned fallbacks (see README "环境受限�
 
 ## Conventions & Gotchas
 
-- Java 25 toolchain, `options.release = 21` everywhere (1.21.x servers run Java 21; no post-21 language features, P5).
+- Java 21 toolchain, `options.release = 21` everywhere (1.21.x servers run Java 21; no post-21 language features, P5).
 - `plugin.yml` lives in `kelpLib-bukkit/src/main/resources` with `version: '${version}'` expanded from the Gradle project version; `velocity-plugin.json` in `kelpLib-velocity/src/main/resources` likewise. Change versions in `gradle.properties` only.
 - Velocity plugin id is `kelplib` (`@Plugin` annotation + `velocity-plugin.json`); keep both in sync.
 - `plugin.yml` declares `api-version: '1.21'`, `folia-supported: true`, `load: STARTUP` — KelpLib initializes its facade in `onLoad()` so STARTUP dependents can consume it there.

@@ -12,7 +12,7 @@
 **KelpLib** 是一套面向 **Paper / Folia（后端服务端）与 Velocity（代理端）** 的实用工具与扩展 API 集合，以平台插件形式安装，供业务插件通过依赖接入。目标是把插件开发中重复、易错的部分——**调度线程、任务链与生命周期、GUI 菜单、命令注册、配置管理、物品构建与 NBT、消息多语言、跨服消息、数据持久化**——沉淀为一套默认线程安全、风格统一的共享库，让业务插件"快速、简便"地开发。
 
 - 命名空间：`ink.tuanzi.kelpLib`（Gradle group：`ink.tuanzi`）
-- 技术基线：Java 25 toolchain（发布字节码目标 21，见 §7）· Paper API 26.3 · Velocity API 3.x · Gradle 9.4
+- 技术基线：Java 21 toolchain（发布字节码目标同为 21，见 §7）· Paper API 26.3 · Velocity API 3.x · Gradle 9.4
 - 目标平台：Paper（主）、Folia（区域化线程模型下可用）、Velocity（代理端，平台无关模块全集 + 命令/文本子集）
 
 ### 1.1 背景
@@ -486,7 +486,7 @@ CompletableFuture<Boolean> ok = rpc.request(req, Duration.ofSeconds(5));  // 客
 
 **Bukkit/Folia 侧**：
 
-1. **字节码目标 = 21**。1.21.x 服务端最低运行 Java 21，若以 25 编译发布，旧服上会直接 `UnsupportedClassVersionError`。做法：toolchain 保持 25，各模块统一 `options.release.set(21)`；**21 之后的语言特性一律不用**（P5）。
+1. **字节码目标 = 21**。1.21.x 服务端最低运行 Java 21，若以更高版本编译发布，旧服上会直接 `UnsupportedClassVersionError`。做法：toolchain 统一 21，各模块统一 `options.release.set(21)` 兜底；**21 之后的语言特性一律不用**（P5）。
 2. **`plugin.yml` 的 `api-version` 降至 `'1.21'`**（当前为 `'26.3'`，会阻止在 1.21.x 加载）；同时添加 `folia-supported: true`（Folia 加载的必要标志）。版本号仍由 `gradle.properties` 模板注入。
 3. **能力探测 + 调用点隔离**。编译依赖保持 paper-api 26.3；对只在 26.x 存在的 API：`Capabilities` 记录特性开关（启动时探测）；新 API 的调用**收敛到独立类**（方法签名/字段不得引用缺失类型，否则整个类在旧版加载即失败）；能力缺失时提供降级实现或在文档中标注"需 26.x"。预期差异很小：Brigadier、Adventure、Data Component、PDC 在 1.21.x 均已可用。
 
