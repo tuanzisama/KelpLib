@@ -1,0 +1,86 @@
+name: Release (Packages + Pages)
+
+on:
+  push:
+    tags: [ 'v*' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build-and-publish:
+    name: Build & publish jars + javadoc
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v4
+
+      - name: Set up JDK 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: zulu
+          java-version: '25'
+
+      - name: Set up Gradle (with caching)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Resolve version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            echo "version_arg=-Pversion=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version_arg=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        run: ./gradlew build ${{ steps.version.outputs.version_arg }} --stacktrace
+
+      - name: Publish to GitHub Packages
+        run: ./gradlew publish ${{ steps.version.outputs.version_arg }} --stacktrace
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+
+      - name: Generate JavaDoc (api stable surface)
+        run: ./gradlew :kelpLib-api:javadoc ${{ steps.version.outputs.version_arg }}
+
+      - name: Upload plugin jars (workflow artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugin-jars
+          path: |
+            kelpLib-bukkit/build/libs/*-all.jar
+            kelpLib-velocity/build/libs/*-all.jar
+          if-no-files-found: error
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: kelpLib-api/build/docs/javadoc
+
+  deploy-pages:
+    name: Deploy JavaDoc to GitHub Pages
+    needs: build-and-publish
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      pages: write
+      id-token: write
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
