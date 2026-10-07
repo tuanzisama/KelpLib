@@ -55,6 +55,7 @@ jobs:
         run: ./gradlew build ${{ steps.version.outputs.version_arg }} --stacktrace
 
       # GitHub Packages 的版本不可覆盖：同一版本重复 PUT 会返回 422。
+      # 另：Maven 包名（artifactId）必须全小写（kelp-lib-*），混合大小写首次发布即 422。
       # 发布前逐模块探测，已存在的版本自动跳过（重跑工作流幂等）。
       - name: Check already-published modules
         id: check
@@ -62,9 +63,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           VERSION="${{ steps.version.outputs.version }}"
+          REPO="${GITHUB_REPOSITORY,,}"
           MISSING=""
-          for artifact in kelpLib-api kelpLib-core kelpLib-bukkit kelpLib-velocity; do
-            url="https://maven.pkg.github.com/${GITHUB_REPOSITORY}/ink/tuanzi/${artifact}/${VERSION}/${artifact}-${VERSION}.pom"
+          for artifact in kelp-lib-api kelp-lib-core kelp-lib-bukkit kelp-lib-velocity; do
+            url="https://maven.pkg.github.com/${REPO}/ink/tuanzi/${artifact}/${VERSION}/${artifact}-${VERSION}.pom"
             code="$(curl -s -o /dev/null -w '%{http_code}' -u "${GITHUB_ACTOR}:${GITHUB_TOKEN}" "$url" || true)"
             echo "${artifact}: HTTP ${code}"
             if [ "$code" != "200" ]; then

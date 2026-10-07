@@ -83,6 +83,8 @@ tasks.build {
 publishing {
     publications {
         create<MavenPublication>("maven") {
+            // GitHub Packages 仅接受全小写 artifactId（混合大小写首次发布返回 422）
+            artifactId = "kelp-lib-velocity"
             // plain jar = 编译依赖；shadow -all jar 已由 shadow 插件自动挂入 java 组件（all 分类器）
             from(components["java"])
             pom {
@@ -103,7 +105,8 @@ publishing {
         if (System.getenv("GITHUB_TOKEN") != null) {
             maven {
                 name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/" + (System.getenv("GITHUB_REPOSITORY") ?: "utoverse/KelpLib"))
+                val repoSlug = (System.getenv("GITHUB_REPOSITORY") ?: "Utoverse/KelpLib").lowercase()
+                url = uri("https://maven.pkg.github.com/" + repoSlug)
                 credentials {
                     username = System.getenv("GITHUB_ACTOR") ?: "github-actions"
                     password = System.getenv("GITHUB_TOKEN")

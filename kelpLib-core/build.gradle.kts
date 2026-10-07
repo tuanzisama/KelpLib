@@ -1,5 +1,6 @@
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 java {
@@ -25,4 +26,39 @@ dependencies {
     compileOnly("com.zaxxer:HikariCP:6.3.3")
     // Messenger Redis 传输：Lettuce（分发方式同上）
     compileOnly("io.lettuce:lettuce-core:6.8.2.RELEASE")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            // GitHub Packages 仅接受全小写 artifactId（混合大小写首次发布返回 422）
+            artifactId = "kelp-lib-core"
+            from(components["java"])
+            pom {
+                name.set("KelpLib Core")
+                description.set("Platform-agnostic implementations of KelpLib")
+                url.set("https://github.com/Utoverse/KelpLib")
+                developers {
+                    developer {
+                        id.set("evenwan")
+                        name.set("evenwan")
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        // GitHub Packages（仅 CI 中注册；本地 publishToMavenLocal 不受影响）
+        if (System.getenv("GITHUB_TOKEN") != null) {
+            maven {
+                name = "GitHubPackages"
+                val repoSlug = (System.getenv("GITHUB_REPOSITORY") ?: "Utoverse/KelpLib").lowercase()
+                url = uri("https://maven.pkg.github.com/" + repoSlug)
+                credentials {
+                    username = System.getenv("GITHUB_ACTOR") ?: "github-actions"
+                    password = System.getenv("GITHUB_TOKEN")
+                }
+            }
+        }
+    }
 }

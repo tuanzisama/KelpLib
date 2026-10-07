@@ -17,7 +17,7 @@ gradlew :kelpLib-bukkit:runServer          # 本地 Paper 26.3 冒烟（run-pape
 
 工作流 [`.github/workflows/release.yml`](.github/workflows/release.yml)：推送 `v*` tag（或手动触发）时自动
 
-1. 构建 → `gradlew publish` 把 **api / core / bukkit / velocity** 四个构件发布到 GitHub Packages Maven 仓库（`https://maven.pkg.github.com/<owner>/<repo>`；bukkit/velocity 附带 `all` 分类器的可安装插件 jar；tag 版本号自动映射 Maven 版本，如 `v1.2.3` → `1.2.3`）；
+1. 构建 → `gradlew publish` 把 **api / core / bukkit / velocity** 四个构件发布到 GitHub Packages Maven 仓库（`https://maven.pkg.github.com/<owner>/<repo>`；bukkit/velocity 附带 `all` 分类器的可安装插件 jar；tag 版本号自动映射 Maven 版本，如 `v1.2.3` → `1.2.3`）。Maven 坐标为 `ink.tuanzi:kelp-lib-{api,core,bukkit,velocity}`——**GitHub Packages 要求 artifactId 全小写**，故发布坐标与模块目录名（`kelpLib-*`）不同；
 2. 生成 **kelpLib-api JavaDoc** 并部署到 GitHub Pages（`https://<owner>.github.io/<repo>/`）。
 
 **前置设置（一次性）**：仓库 Settings → Pages → Source 选 "GitHub Actions"。
@@ -39,7 +39,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-// dependencies { compileOnly("ink.tuanzi:kelpLib-api:1.0.0") }
+// dependencies { compileOnly("ink.tuanzi:kelp-lib-api:1.0.0") }
 ```
 
 

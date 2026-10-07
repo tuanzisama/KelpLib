@@ -30,6 +30,8 @@ tasks.withType<Javadoc>().configureEach {
 publishing {
     publications {
         create<MavenPublication>("maven") {
+            // GitHub Packages 仅接受全小写 artifactId（混合大小写首次发布返回 422）
+            artifactId = "kelp-lib-api"
             from(components["java"])
             pom {
                 name.set("KelpLib API")
@@ -49,7 +51,8 @@ publishing {
         if (System.getenv("GITHUB_TOKEN") != null) {
             maven {
                 name = "GitHubPackages"
-                url = uri("https://maven.pkg.github.com/" + (System.getenv("GITHUB_REPOSITORY") ?: "utoverse/KelpLib"))
+                val repoSlug = (System.getenv("GITHUB_REPOSITORY") ?: "Utoverse/KelpLib").lowercase()
+                url = uri("https://maven.pkg.github.com/" + repoSlug)
                 credentials {
                     username = System.getenv("GITHUB_ACTOR") ?: "github-actions"
                     password = System.getenv("GITHUB_TOKEN")
