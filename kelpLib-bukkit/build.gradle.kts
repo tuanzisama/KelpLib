@@ -6,8 +6,12 @@ plugins {
     id("xyz.jpenilla.run-paper") version "3.0.2"
 }
 
+import org.gradle.api.attributes.java.TargetJvmVersion
+
 java {
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    // paper-api 26.3 的模块元数据要求 JVM 25 运行时（Paper 26.1+ 服务器同样要求 Java 25）；
+    // options.release = 21 保持字节码与语言特性不超出 21（P5）。
+    toolchain.languageVersion = JavaLanguageVersion.of(25)
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -15,25 +19,26 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8"
 }
 
-// 编译期桩：本构建环境无法访问 paper-api 仓库时，用本地桩镜像所需 API 子集。
-// stubs 仅参与编译（不进入 jar 产物）；若环境可解析 paper-api，将下方 paper-api 依赖启用
-// 并删除 sourceSets.create("stubs") 与 compileOnly(sourceSets["stubs"].output) 两行即可。
-sourceSets.create("stubs")
+// options.release = 21 会让 TargetJvmVersion 解析属性取 21，而 paper-api 26.3 元数据声明
+// 需要 JVM 25；部署目标本就是 Java 25 服务器，将该属性显式对齐到 25（字节码仍为 21 级）。
+configurations.compileClasspath {
+    attributes {
+        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 25)
+    }
+}
 
+// paper-api 已可解析（repo.papermc.io 经本地代理可达），编译期桩（src/stubs/java）停用；
+// 版本与 runServer 冒烟运行的服务器保持一致（Paper 26.3-159）。
 dependencies {
     api(project(":kelpLib-api"))
     implementation(project(":kelpLib-core"))
 
-    // compileOnly("io.papermc.paper:paper-api:26.3.build.+")
-    compileOnly(sourceSets["stubs"].output)
+    compileOnly("io.papermc.paper:paper-api:26.3.build.159-beta")
     compileOnly("net.kyori:adventure-text-minimessage:4.17.0")
     compileOnly("org.yaml:snakeyaml:2.7")
     // 存储与 Redis 传输的运行时实现经 plugin.yml `libraries:` 动态引入（§8 内部型依赖）。
     compileOnly("com.zaxxer:HikariCP:6.3.3")
     compileOnly("io.lettuce:lettuce-core:6.8.2.RELEASE")
-
-    // 桩源集自身的编译依赖（paper-api 同时携带 Adventure 类型）
-    "stubsImplementation"("net.kyori:adventure-api:4.17.0")
 }
 
 tasks.processResources {

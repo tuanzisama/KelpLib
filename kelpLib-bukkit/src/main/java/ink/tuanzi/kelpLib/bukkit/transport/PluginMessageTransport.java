@@ -39,9 +39,9 @@ public final class PluginMessageTransport implements Transport, PluginMessageLis
     public void publish(String channel, byte[] payload) {
         byte[] framed = frame(channel, payload);
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.sendPluginMessage(KelpLib.getInstance(), CHANNEL, framed)) {
-                return; // 经任一在线玩家的连接送达代理端即可
-            }
+            // 26.3 起 sendPluginMessage 返回 void，不再反馈是否送达；投给首个在线玩家即完成投递
+            player.sendPluginMessage(KelpLib.getInstance(), CHANNEL, framed);
+            return;
         }
         // 无在线玩家：静默丢弃（文档约束）
     }
@@ -92,7 +92,7 @@ public final class PluginMessageTransport implements Transport, PluginMessageLis
     }
 
     @Override
-    public void pluginMessageReceived(String channel, Player player, byte[] message) {
+    public void onPluginMessageReceived(String channel, Player player, byte[] message) {
         if (!CHANNEL.equals(channel)) {
             return;
         }

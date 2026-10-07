@@ -8,7 +8,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.RegisteredListener;
+import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Method;
@@ -27,7 +27,7 @@ import java.util.logging.Logger;
  * 函数式事件订阅（§6.2，仅 Bukkit 侧）：subscribe/merge/bindEvent、EventFilters、expireAfter，
  * 订阅即流——过滤 → 过期 → 处理 → 绑定生命周期，一行收口。回调线程不做假设（Folia 区域线程）。
  *
- * <p>实现基于 {@link HandlerList} + {@link org.bukkit.event.RegisteredListener} 直接注册，
+ * <p>实现基于 {@link HandlerList} + {@link org.bukkit.plugin.RegisteredListener} 直接注册，
  * 免去动态类生成；{@code bindWith(consumer)} 时以 consumer 所属插件完成注册。</p>
  *
  * <pre>{@code
