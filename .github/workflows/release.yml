@@ -81,8 +81,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
         run: |
-          for module in ${{ steps.check.outputs.missing }}; do
-            ./gradlew ":${module}:publish" ${{ steps.version.outputs.version_arg }} \
+          # MISSING 里是发布坐标（kelp-lib-*）；Gradle 任务路径用项目名（kelpLib-*）
+          for artifact in ${{ steps.check.outputs.missing }}; do
+            project="kelpLib-${artifact#kelp-lib-}"
+            ./gradlew ":${project}:publish" ${{ steps.version.outputs.version_arg }} \
               --no-configuration-cache --stacktrace
           done
 
