@@ -37,6 +37,12 @@ publishing {
                 name.set("KelpLib API")
                 description.set("Platform-agnostic stable API surface of KelpLib (utoverse server family)")
                 url.set("https://github.com/tuanzisama/KelpLib")
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
                 developers {
                     developer {
                         id.set("evenwan")

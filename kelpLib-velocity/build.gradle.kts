@@ -91,6 +91,12 @@ publishing {
                 name.set("KelpLib Velocity")
                 description.set("Velocity platform module of KelpLib (plugin jar under 'all' classifier)")
                 url.set("https://github.com/tuanzisama/KelpLib")
+                licenses {
+                    license {
+                        name.set("Apache-2.0")
+                        url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
                 developers {
                     developer {
                         id.set("evenwan")
