@@ -38,23 +38,51 @@ jobs:
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
 
+      # tag 推送时以 tag 版本为准（去掉 v 前缀）；手动触发时使用 gradle.properties 版本
       - name: Resolve version
         id: version
         run: |
           if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
             echo "version_arg=-Pversion=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
           else
+            VERSION="$(grep '^version=' gradle.properties | cut -d= -f2 | tr -d '[:space:]')"
+            echo "version=$VERSION" >> "$GITHUB_OUTPUT"
             echo "version_arg=" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Build
         run: ./gradlew build ${{ steps.version.outputs.version_arg }} --stacktrace
 
+      # GitHub Packages 的版本不可覆盖：同一版本重复 PUT 会返回 422。
+      # 发布前逐模块探测，已存在的版本自动跳过（重跑工作流幂等）。
+      - name: Check already-published modules
+        id: check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          MISSING=""
+          for artifact in kelpLib-api kelpLib-core kelpLib-bukkit kelpLib-velocity; do
+            url="https://maven.pkg.github.com/${GITHUB_REPOSITORY}/ink/tuanzi/${artifact}/${VERSION}/${artifact}-${VERSION}.pom"
+            code="$(curl -s -o /dev/null -w '%{http_code}' -u "${GITHUB_ACTOR}:${GITHUB_TOKEN}" "$url" || true)"
+            echo "${artifact}: HTTP ${code}"
+            if [ "$code" != "200" ]; then
+              MISSING="${MISSING}${artifact} "
+            fi
+          done
+          echo "missing=${MISSING}" >> "$GITHUB_OUTPUT"
+
       - name: Publish to GitHub Packages
-        run: ./gradlew publish ${{ steps.version.outputs.version_arg }} --stacktrace
+        if: steps.check.outputs.missing != ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          for module in ${{ steps.check.outputs.missing }}; do
+            ./gradlew ":${module}:publish" ${{ steps.version.outputs.version_arg }} \
+              --no-configuration-cache --stacktrace
+          done
 
       - name: Generate JavaDoc (api stable surface)
         run: ./gradlew :kelpLib-api:javadoc ${{ steps.version.outputs.version_arg }}

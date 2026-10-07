@@ -85,6 +85,17 @@ publishing {
         create<MavenPublication>("maven") {
             // plain jar = 编译依赖；shadow -all jar 已由 shadow 插件自动挂入 java 组件（all 分类器）
             from(components["java"])
+            pom {
+                name.set("KelpLib Velocity")
+                description.set("Velocity platform module of KelpLib (plugin jar under 'all' classifier)")
+                url.set("https://github.com/Utoverse/KelpLib")
+                developers {
+                    developer {
+                        id.set("evenwan")
+                        name.set("evenwan")
+                    }
+                }
+            }
         }
     }
     repositories {

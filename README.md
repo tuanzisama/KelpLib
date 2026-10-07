@@ -22,6 +22,8 @@ gradlew :kelpLib-bukkit:runServer          # 本地 Paper 26.3 冒烟（run-pape
 
 **前置设置（一次性）**：仓库 Settings → Pages → Source 选 "GitHub Actions"。
 
+> **注意**：GitHub Packages 的包版本**不可覆盖**——同一版本重复发布返回 422。工作流发布前会逐模块探测、已存在的版本自动跳过（重跑幂等）；若需强制重发某版本，先在 Packages → 对应包 → Versions 删除该版本，或换新版本号 tag。
+
 业务插件从 Packages 消费（`settings.gradle.kts`）：
 
 ```kotlin

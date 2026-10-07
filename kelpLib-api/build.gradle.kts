@@ -31,6 +31,17 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             from(components["java"])
+            pom {
+                name.set("KelpLib API")
+                description.set("Platform-agnostic stable API surface of KelpLib (utoverse server family)")
+                url.set("https://github.com/Utoverse/KelpLib")
+                developers {
+                    developer {
+                        id.set("evenwan")
+                        name.set("evenwan")
+                    }
+                }
+            }
         }
     }
     repositories {
